@@ -13,14 +13,15 @@ const mongodbURI =
   process.env.mongodbURI ||
   "mongodb+srv://seconddb:dbsecond@cluster0.0t9dcns.mongodb.net/?retryWrites=true&w=majority";
 
-app.use(cors());
+  app.use(cors({
+    origin: ['http://localhost:3000', "*"],
+    credentials: true
+  }));
+
 app.use(express.json());
 app.use(cookieParser());
 
-// app.use(cors({
-//   origin: ['http://localhost:3000', "*"],
-//   credentials: true
-// }));
+
 
 let productSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -32,7 +33,6 @@ const productModel = mongoose.model("products2", productSchema);
 
 const userSchema = new mongoose.Schema({
   firstName: { type: String },
-  lastName: { type: String },
   email: { type: String, required: true },
   password: { type: String, required: true },
   createdOn: { type: Date, default: Date.now },
@@ -42,12 +42,11 @@ const userModel = mongoose.model("User", userSchema);
 app.post("/signup", (req, res) => {
   let body = req.body;
 
-  if (!body.firstName || !body.lastName || !body.email || !body.password) {
+  if (!body.firstName || !body.email || !body.password) {
     res.status(400).send(
       `required fields missing, request example: 
                 {
                     "firstName": "John",
-                    "lastName": "Doe",
                     "email": "abc@abc.com",
                     "password": "12345"
                 }`
@@ -78,7 +77,6 @@ app.post("/signup", (req, res) => {
           userModel.create(
             {
               firstName: body.firstName,
-              lastName: body.lastName,
               email: body.email.toLowerCase(),
               password: hashString,
             },

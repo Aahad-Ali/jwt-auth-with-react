@@ -13,16 +13,15 @@ function Signup() {
     e.preventDefault();
 
     try {
-      const responce = await axios.post(
-        `${baseUrl}/signup`,
+      const responce = await axios.post(`${baseUrl}/signup`,
         {
           firstName: name,
           email: email,
           password: password,
         },
-        {
-          withCredentials: true,
-        }
+        // {
+        //   withCredentials: true,
+        // }
       );
       console.log("signup successfully");
       setResult('signup successfully')
