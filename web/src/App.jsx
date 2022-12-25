@@ -1,5 +1,5 @@
 import './App.css';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 
@@ -11,14 +11,11 @@ import Login from "./components/login";
 import Signup from "./components/signup";
 
 
-
 function App() {
 
   const [isLogin, setIsLogin] = useState(false);
   const [fullName, setFullName] = useState("");
 
-
-  
 
   const logoutHandler = () => {
 
@@ -55,7 +52,7 @@ function App() {
         </Routes>
         :
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Login set={setIsLogin}/>} />
           <Route path="signup" element={<Signup />} />
           <Route path="*" element={<Navigate to="/" replace={true} />} />
         </Routes>
@@ -66,9 +63,6 @@ function App() {
 }
 
 export default App;
-
-
-
 
 
 

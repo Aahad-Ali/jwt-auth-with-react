@@ -13,40 +13,43 @@ const mongodbURI =
   process.env.mongodbURI ||
   "mongodb+srv://seconddb:dbsecond@cluster0.0t9dcns.mongodb.net/?retryWrites=true&w=majority";
 
-  app.use(cors({
-    origin: ['http://localhost:3000', "*"],
-    credentials: true
-  }));
-
 app.use(express.json());
 app.use(cookieParser());
 
-
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "*"],
+    credentials: true,
+  })
+);
 
 let productSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  description: String,
   price: Number,
+  description: String,
   createdOn: { type: Date, default: Date.now },
 });
-const productModel = mongoose.model("products2", productSchema);
+const productModel = mongoose.model("products", productSchema);
 
 const userSchema = new mongoose.Schema({
   firstName: { type: String },
+  lastName: { type: String },
   email: { type: String, required: true },
   password: { type: String, required: true },
+
   createdOn: { type: Date, default: Date.now },
 });
-const userModel = mongoose.model("User", userSchema);
+const userModel = mongoose.model("Users", userSchema);
 
 app.post("/signup", (req, res) => {
   let body = req.body;
 
-  if (!body.firstName || !body.email || !body.password) {
+  if (!body.firstName || !body.lastName || !body.email || !body.password) {
     res.status(400).send(
       `required fields missing, request example: 
                 {
                     "firstName": "John",
+                    "lastName": "Doe",
                     "email": "abc@abc.com",
                     "password": "12345"
                 }`
@@ -73,11 +76,13 @@ app.post("/signup", (req, res) => {
       } else {
         // user not already exist
 
+        // bcrypt hash
         stringToHash(body.password).then((hashString) => {
           userModel.create(
             {
               firstName: body.firstName,
-              email: body.email.toLowerCase(),
+              lastName: body.lastName,
+              email: body.email,
               password: hashString,
             },
             (err, result) => {
@@ -108,19 +113,18 @@ app.post("/login", (req, res) => {
     // null check - undefined, "", 0 , false, null , NaN
     res.status(400).send(
       `required fields missing, request example: 
-              {
-                  "email": "abc@abc.com",
-                  "password": "12345"
-              }`
+                {
+                    "email": "abc@abc.com",
+                    "password": "12345"
+                }`
     );
     return;
   }
 
-  // check if user already exist // query email user
+  // check if user exist
   userModel.findOne(
     { email: body.email },
-
-    "email password",
+    "firstName lastName email password",
     (err, data) => {
       if (!err) {
         console.log("data: ", data);
@@ -131,7 +135,7 @@ app.post("/login", (req, res) => {
             console.log("isMatched: ", isMatched);
 
             if (isMatched) {
-              var token = jwt.sign(
+              const token = jwt.sign(
                 {
                   _id: data._id,
                   email: data.email,
@@ -160,7 +164,7 @@ app.post("/login", (req, res) => {
               });
               return;
             } else {
-              console.log("user not found");
+              console.log("password did not match");
               res.status(401).send({ message: "Incorrect email or password" });
               return;
             }
@@ -198,6 +202,7 @@ app.use((req, res, next) => {
     });
     return;
   }
+
   jwt.verify(req.cookies.Token, SECRET, function (err, decodedData) {
     if (!err) {
       console.log("decodedData: ", decodedData);
@@ -269,18 +274,9 @@ app.post("/product", (req, res) => {
       }
     }
   );
-
-  // res.send({
-  //     message: "product added successfully"
-  // });
 });
 
 app.get("/products", (req, res) => {
-  // res.send({
-  //     message: "got all products successfully",
-  //     data: products
-  // })
-
   productModel.find({}, (err, data) => {
     if (!err) {
       res.send({
@@ -297,27 +293,6 @@ app.get("/products", (req, res) => {
 
 app.get("/product/:id", (req, res) => {
   const id = req.params.id;
-
-  // let isFound = false;
-  // for (let i = 0; i < products.length; i++) {
-
-  //     if (products[i].id === id) {
-  //         res.send({
-  //             message: `get product by id: ${products[i].id} success`,
-  //             data: products[i]
-  //         });
-
-  //         isFound = true
-  //         break;
-  //     }
-  // }
-  // if (isFound === false) {
-  //     res.status(404)
-  //     res.send({
-  //         message: "product not found"
-  //     });
-  // }
-  // return;
 
   productModel.findOne({ _id: id }, (err, data) => {
     if (!err) {
@@ -367,46 +342,15 @@ app.put("/product/:id", async (req, res) => {
   const body = req.body;
   const id = req.params.id;
 
-  if (
-    // validation
-    !body.name ||
-    !body.price ||
-    !body.description
-  ) {
-    res.status(400).send({
-      message: "required parameters missing",
-    });
+  if (!body.name || !body.price || !body.description) {
+    res.status(400).send(` required parameter missing. example request body:
+        {
+            "name": "value",
+            "price": "value",
+            "description": "value"
+        }`);
     return;
   }
-
-  //   console.log(body.name);
-  //   console.log(body.price);
-  //   console.log(body.description);
-
-  // let isFound = false;
-  // for (let i = 0; i < products.length; i++) {
-  //     if (products[i].id === id) {
-
-  //         products[i].name = body.name;
-  //         products[i].price = body.price;
-  //         products[i].description = body.description;
-
-  //         res.send({
-  //             message: "product modified successfully"
-  //         });
-  //         isFound = true
-  //         break;
-  //     }
-  // }
-  // if (!isFound) {
-  //     res.status(404)
-  //     res.send({
-  //         message: "edit fail: product not found"
-  //     });
-  // }
-  // res.send({
-  //     message: "product added successfully"
-  // });
 
   try {
     let data = await productModel

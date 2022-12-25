@@ -1,8 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 
+const baseUrl = "http://localhost:5001";
+
 function Signup() {
-  const baseUrl = "http://localhost:5001";
   const [result, setResult] = useState("");
 
   const [name, setName] = useState("");
@@ -13,20 +14,17 @@ function Signup() {
     e.preventDefault();
 
     try {
-      const responce = await axios.post(`${baseUrl}/signup`,
-        {
-          firstName: name,
-          email: email,
-          password: password,
-        },
-        // {
-        //   withCredentials: true,
-        // }
-      );
-      console.log("signup successfully");
-      setResult('signup successfully')
+      let response = await axios.post(`${baseUrl}/signup`, {
+        firstName: name,
+        lastName: name,
+        email: email,
+        password: password,
+      });
+
+      console.log("signup successful");
+      setResult("signup successful");
     } catch (e) {
-      console.log("e:", e);
+      console.log("e: ", e);
     }
 
     // e.reset();
@@ -51,6 +49,7 @@ function Signup() {
         <input
           type="email"
           name="username"
+          autoComplete="username"
           placeholder="email"
           onChange={(e) => {
             setEmail(e.target.value);
